@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"time"
@@ -30,8 +29,8 @@ func main() {
 	})
 }
 
-func getKey(ctx context.Context, liveTime time.Time, parameters map[string]string, previewKey string) string {
-	logger := handler.GetLogger(ctx)
+func getKey(ctx *handler.Context, liveTime time.Time, parameters map[string]string, previewKey string) string {
+	logger := ctx.GetLogger()
 	if time.Now().After(liveTime) {
 		logger.Info("File is live")
 		return "2025.json"
@@ -46,13 +45,11 @@ func getKey(ctx context.Context, liveTime time.Time, parameters map[string]strin
 }
 
 func buildHandler(s3Client *s3.Client, bucketName string, goLiveTime time.Time, previewKey string) H {
-	return func(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
-		objectKey := getKey(ctx, goLiveTime, event.QueryStringParameters, previewKey)
+	return func(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 		res, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
 			Bucket: aws.String(bucketName),
-			Key:    &objectKey,
+			Key:    new(getKey(ctx, goLiveTime, event.QueryStringParameters, previewKey)),
 		})
 
 		if err != nil {

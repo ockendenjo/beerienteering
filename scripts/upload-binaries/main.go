@@ -14,13 +14,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/ockendenjo/hbt-hbc-2023/scripts/pkg/hash"
+	"github.com/ockendenjo/beerienteering/scripts/pkg/hash"
 )
 
 var buildPath = filepath.Join("build")
 
 func main() {
+
 	ctx := context.Background()
+
+	bucket := getBucket()
 
 	awsConfig, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -28,7 +31,6 @@ func main() {
 	}
 
 	s3Client := s3.NewFromConfig(awsConfig)
-	bucket := getBucketForEnv()
 
 	buildDirs, err := listBuildDirectories()
 	if err != nil {
@@ -40,6 +42,9 @@ func main() {
 	var wg sync.WaitGroup
 	errChan := make(chan error, 100) //Larger than number of lambdas
 	sem := make(chan struct{}, 10)   // Limit concurrent executions
+
+	logger := log.New(os.Stderr, "", 0)
+	exitWithError := false
 
 	for _, dir := range buildDirs {
 		zipPath := filepath.Join(buildPath, dir, "bootstrap.zip")
@@ -56,7 +61,9 @@ func main() {
 		key := fmt.Sprintf("lambda_binaries/%s.zip", hexStr)
 		exists, err := doesFileExist(ctx, s3Client, key, bucket)
 		if err != nil {
-			panic(err)
+			logger.Println(err.Error())
+			exitWithError = true
+			continue
 		}
 
 		manifestFile[dir] = key
@@ -66,46 +73,42 @@ func main() {
 		}
 		fmt.Printf("Binary for %s does not exist in S3, uploading...\n", dir)
 
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			sem <- struct{}{} // Acquire a token
 			defer func() { <-sem }()
 
 			err = uploadFile(ctx, s3Client, zipPath, key, bucket)
 			if err != nil {
-				log.New(os.Stderr, "", 0).Printf("failed to upload lambda binary from %s: %s", dir, err.Error())
+				logger.Printf("failed to upload lambda binary from %s: %s", dir, err.Error())
 				errChan <- fmt.Errorf("failed to upload lambda binary from %s", dir)
 				return
 			}
 			fmt.Printf("Binary for %s uploaded successfully\n", dir)
-		}()
+		})
 	}
 
 	wg.Wait()
 
-	if len(errChan) > 0 {
+	if len(errChan) > 0 || exitWithError {
 		os.Exit(1)
 	}
 
-	err = putManifest(ctx, s3Client, manifestFile, "default", bucket)
+	err = putManifest(ctx, s3Client, manifestFile, bucket)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Manifest for %s uploaded successfully\n", "default")
+	fmt.Print("Manifest uploaded successfully\n")
 }
 
-func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]string, workspace, bucket string) error {
+func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]string, bucket string) error {
 	b, err := json.Marshal(manifest)
 	if err != nil {
 		return err
 	}
 
-	manifestKey := fmt.Sprintf("lambda_manifests/%s.json", workspace)
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      &bucket,
-		Key:         &manifestKey,
+		Key:         new("lambda_manifests/default.json"),
 		Body:        bytes.NewReader(b),
 		ContentType: ptr("application/json"),
 	})
@@ -118,7 +121,7 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 	if err != nil {
 		return err
 	}
-	file, err := os.OpenFile("build/manifest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("build/manifest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -134,8 +137,12 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func getBucketForEnv() string {
-	return "ockendenjo-beerienteering-tfstate-rghv9t93fw"
+func getBucket() string {
+	bucket := os.Getenv("BINARY_BUCKET")
+	if bucket != "" {
+		return bucket
+	}
+	panic("BINARY_BUCKET environment variable not set")
 }
 
 func doesFileExist(ctx context.Context, s3Client *s3.Client, key string, bucket string) (bool, error) {
@@ -144,8 +151,7 @@ func doesFileExist(ctx context.Context, s3Client *s3.Client, key string, bucket 
 		Key:    &key,
 	})
 	if err != nil {
-		var nf *s3Types.NotFound
-		if errors.As(err, &nf) {
+		if _, ok := errors.AsType[*s3Types.NotFound](err); ok {
 			return false, nil
 		}
 		return false, err
@@ -154,11 +160,13 @@ func doesFileExist(ctx context.Context, s3Client *s3.Client, key string, bucket 
 }
 
 func uploadFile(ctx context.Context, s3Client *s3.Client, filePath, key, bucket string) error {
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // #nosec G304 -- Script needs to load file from variable
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &bucket,

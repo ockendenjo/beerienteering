@@ -1,13 +1,16 @@
 module "lambda_get_stashes" {
-  source    = "./lambda"
-  s3_bucket = data.aws_s3_bucket.build_artifacts.id
-  s3_key    = local.lambda_manifest["get-stashes"]
-  name      = "hbt-beerienteering-get-stashes"
+  source                   = "github.com/ockendenjo/tfmods//lambda"
+  s3_bucket                = data.aws_s3_bucket.build_artifacts.id
+  s3_object_key            = local.lambda_manifest["get-stashes"]
+  name                     = "hbt-beerienteering-get-stashes"
+  aws_env                  = var.env
+  permissions_boundary_arn = var.permissions_boundary_arn
+  project_name             = "beerienteering"
 
-  env_vars = {
+  environment = {
     GO_LIVE_TIME = "2025-07-17T18:58:00+01:00"
     BUCKET_NAME  = aws_s3_bucket.backend.id
-    PREVIEW_KEY  = "d19f8144-f282-49f7-b7c6-fb3972a8231e"
+    PREVIEW_KEY  = var.preview_key
   }
 }
 
@@ -37,5 +40,5 @@ resource "aws_iam_role_policy" "get_stashes_s3" {
       },
     ]
   })
-  role = module.lambda_get_stashes.lambda_role_id
+  role = module.lambda_get_stashes.role_id
 }

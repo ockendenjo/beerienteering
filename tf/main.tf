@@ -21,6 +21,11 @@ provider "aws" {
   # This is  because we're going to deploy our ACM to us-east-1 so we can later use with CloudFront
   alias  = "us-east-1"
   region = "us-east-1"
-}
 
-data "aws_caller_identity" "current" {}
+  default_tags {
+    tags = {
+      Project     = "beerienteering"
+      Environment = "pro"
+    }
+  }
+}

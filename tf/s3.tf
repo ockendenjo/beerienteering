@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "backend" {
-  bucket = "hbt-beerienteering-qgdmb3unjy"
+  bucket_prefix = "beerienteering-web-"
 }
 
 resource "aws_s3_bucket_policy" "allow_cloudfront" {
@@ -18,4 +18,8 @@ resource "aws_s3_bucket_policy" "allow_cloudfront" {
       }
     ]
   })
+}
+
+output "web_bucket" {
+  value = aws_s3_bucket.backend.id
 }

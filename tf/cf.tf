@@ -3,15 +3,10 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
   http_version        = "http2and3"
-
-  aliases = [
-    aws_route53_zone.main.name,
-  ]
+  comment             = "Beerienteering (${var.env})"
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.cert.arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
+    cloudfront_default_certificate = true
   }
 
   origin {

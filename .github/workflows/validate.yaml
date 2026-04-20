@@ -1,0 +1,23 @@
+name: Validate
+
+on:
+  workflow_call:
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install JSON validator
+        run: |
+          wget https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
+          chmod +x ./yajsv.linux.amd64
+
+      - name: Validate JSON
+        run: |
+          ./yajsv.linux.amd64 -s schema/stashes.schema.json ui/live.json
+          ./yajsv.linux.amd64 -s schema/stashes.schema.json ui/demo.json
+          ./yajsv.linux.amd64 -s schema/stash2025.schema.json ui/2025.json

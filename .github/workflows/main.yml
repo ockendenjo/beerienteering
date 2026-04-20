@@ -5,94 +5,23 @@ on:
     branches:
       - main
 
+concurrency:
+  group: main
+  cancel-in-progress: false
+
 jobs:
   validate:
-    name: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install JSON validator
-        run: |
-          wget https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
-          chmod +x ./yajsv.linux.amd64
-
-      - name: Validate JSON
-        run: |
-          ./yajsv.linux.amd64 -s schema/stashes.schema.json ui/live.json
-          ./yajsv.linux.amd64 -s schema/stashes.schema.json ui/demo.json
-          ./yajsv.linux.amd64 -s schema/stash2025.schema.json ui/2025.json
+    uses: ./.github/workflows/validate.yaml
 
   test:
-    name: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install Node modules
-        working-directory: ui
-        run: npm install
-
-      - name: Check formatting
-        working-directory: ui
-        run: npx prettier --check .
+    uses: ./.github/workflows/test.yaml
 
   build:
-    name: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install Node modules
-        working-directory: ui
-        run: npm install
-
-      - name: Build
-        working-directory: ui
-        run: npm run build
-
-      - name: Copy JSON files
-        run: |
-          jq -c . < ui/live.json > /tmp/live.json
-          cp /tmp/live.json ui/dist
-          jq -c . < ui/demo.json > /tmp/demo.json
-          cp /tmp/demo.json ui/dist
-          jq -c . < ui/2025.json > /tmp/2025.json
-          cp /tmp/2025.json ui/dist
-          cp -r ui/imgs ui/dist/imgs
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: ui/dist
+    uses: ./.github/workflows/build.yaml
 
   deploy:
-    name: deploy
-    environment: pro
-    runs-on: ubuntu-latest
     needs: [validate, test, build]
     permissions:
-      id-token: write   # This is required for requesting the JWT
-      contents: read    # This is required for actions/checkout
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: ui/dist
-
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: S3 Sync
-        run: aws s3 sync ./ui/dist s3://${{ secrets.AWS_BUCKET_NAME }}
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/deploy.yaml

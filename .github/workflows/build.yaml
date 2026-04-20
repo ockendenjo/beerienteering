@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Node modules
+        working-directory: ui
+        run: npm install
+
+      - name: Build
+        working-directory: ui
+        run: npm run build
+
+      - name: Copy JSON files
+        run: |
+          jq -c . < ui/live.json > /tmp/live.json
+          cp /tmp/live.json ui/dist
+          jq -c . < ui/demo.json > /tmp/demo.json
+          cp /tmp/demo.json ui/dist
+          jq -c . < ui/2025.json > /tmp/2025.json
+          cp /tmp/2025.json ui/dist
+          cp -r ui/imgs ui/dist/imgs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ui/dist

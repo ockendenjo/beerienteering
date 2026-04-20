@@ -39,7 +39,6 @@ function makeRow(stash) {
     String(stash.lat),
     String(stash.lon),
     stash.w3w || '',
-    stash.hide ? 'Yes' : '',
   ];
   for (const text of fields) {
     const td = document.createElement('td');

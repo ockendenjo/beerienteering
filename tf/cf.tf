@@ -43,6 +43,18 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
   }
 
   ordered_cache_behavior {
+    path_pattern     = "admin/*"
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "s3-origin"
+
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+
+    cache_policy_id = data.aws_cloudfront_cache_policy.caching_disabled.id
+  }
+
+  ordered_cache_behavior {
     path_pattern     = "index.html"
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
@@ -56,7 +68,7 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
 
   ordered_cache_behavior {
     path_pattern     = "stashes"
-    allowed_methods  = ["GET", "HEAD"]
+    allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "api-gateway"
 

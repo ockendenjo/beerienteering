@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beerienteering Admin</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <header>
+    <h1>Beerienteering Admin</h1>
+    <div class="header-controls">
+      <button id="save-btn">Save</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <button id="add-btn">Add Stash</button>
+    </div>
+    <table id="stashes-table">
+      <thead>
+        <tr>
+          <th>Location</th>
+          <th>Type</th>
+          <th>Points</th>
+          <th>Lat</th>
+          <th>Lon</th>
+          <th>W3W</th>
+          <th>Hide</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="stashes-body"></tbody>
+    </table>
+  </main>
+
+  <div id="modal-overlay" class="hidden">
+    <div id="modal">
+      <h2 id="modal-title">Add Stash</h2>
+      <form id="stash-form">
+        <label>
+          Location description
+          <input type="text" name="location" maxlength="100" required>
+        </label>
+        <label>
+          Type
+          <select name="type">
+            <option value="STASH">STASH</option>
+            <option value="INFO">INFO</option>
+          </select>
+        </label>
+        <label>
+          Points
+          <input type="number" name="points" min="1" required>
+        </label>
+        <label>
+          Latitude
+          <input type="number" name="lat" step="any" min="-90" max="90" required>
+        </label>
+        <label>
+          Longitude
+          <input type="number" name="lon" step="any" min="-180" max="180" required>
+        </label>
+        <label>
+          What3Words
+          <p class="field-note">Use <a href="https://www.geocachingtoolbox.com/index.php?lang=en&page=w3w" target="_blank" rel="noopener">geocachingtoolbox.com</a> to convert coordinates to W3W.</p>
+          <input type="text" name="w3w" maxlength="100">
+        </label>
+        <div class="form-buttons">
+          <button type="submit">Save</button>
+          <button type="button" id="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="status"></div>
+  <script src="index.js"></script>
+</body>
+</html>

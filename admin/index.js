@@ -5,11 +5,11 @@ document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   try {
-    const res = await fetch(`https://${window.location.host}/stag.json`);
+    const res = await fetch(`https://${window.location.host}/stashes`);
     if (!res.ok) throw new Error(res.statusText);
     stashFile = await res.json();
   } catch {
-    showStatus('Could not load stag.json — starting with empty data', 'error');
+    showStatus('Could not load stashes — starting with empty data', 'error');
   }
   render();
 

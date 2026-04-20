@@ -8,6 +8,9 @@
         "demo": {
             "type": "boolean"
         },
+        "showInstructions": {
+            "type": "boolean"
+        },
         "stashes": {
             "type": "array",
             "items": {

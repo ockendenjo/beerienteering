@@ -8,8 +8,9 @@ import (
 )
 
 type StashFile struct {
-	Stashes []*Stash `json:"stashes"`
-	Demo    bool     `json:"demo"`
+	Stashes          []*Stash `json:"stashes"`
+	Demo             bool     `json:"demo"`
+	ShowInstructions bool     `json:"showInstructions,omitempty"`
 }
 
 func (h *StashFile) Validate() error {

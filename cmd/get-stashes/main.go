@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -25,42 +26,69 @@ func main() {
 		bucketName := handler.MustGetEnv("BUCKET_NAME")
 		previewKey := handler.MustGetEnv("PREVIEW_KEY")
 
-		return buildHandler(s3Client, bucketName, goLiveTime, previewKey)
+		liveKey := optEnv("LIVE_OBJECT_KEY", "2025.json")
+		demoKey := optEnv("DEMO_OBJECT_KEY", "demo.json")
+
+		h := &lambdaHandler{
+			s3Client:   s3Client,
+			bucketName: bucketName,
+			previewKey: previewKey,
+			liveKey:    liveKey,
+			demoKey:    demoKey,
+			goLiveTime: goLiveTime,
+		}
+		return h.handle
 	})
 }
 
-func getKey(ctx *handler.Context, liveTime time.Time, parameters map[string]string, previewKey string) string {
-	logger := ctx.GetLogger()
-	if time.Now().After(liveTime) {
-		logger.Info("File is live")
-		return "2025.json"
+func optEnv(key, defaultValue string) string {
+	s := os.Getenv(key)
+	if s == "" {
+		return defaultValue
 	}
-	if parameters["key"] == previewKey {
+	return s
+}
+
+type lambdaHandler struct {
+	s3Client   *s3.Client
+	bucketName string
+	previewKey string
+	liveKey    string
+	demoKey    string
+	goLiveTime time.Time
+}
+
+func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	res, err := h.s3Client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: &h.bucketName,
+		Key:    new(h.getKey(ctx, event.QueryStringParameters)),
+	})
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
+	}
+
+	return events.APIGatewayProxyResponse{StatusCode: http.StatusOK, Body: string(b), Headers: map[string]string{"Content-Type": "application/json"}}, nil
+
+}
+
+func (h *lambdaHandler) getKey(ctx *handler.Context, parameters map[string]string) string {
+	logger := ctx.GetLogger()
+	if time.Now().After(h.goLiveTime) {
+		logger.Info("File is live")
+		return h.liveKey
+	}
+	if parameters["key"] == h.previewKey {
 		logger.Info("Preview key supplied")
-		return "2025.json"
+		return h.liveKey
 	}
 
 	logger.Info("Event is not yet live")
-	return "demo.json"
-}
-
-func buildHandler(s3Client *s3.Client, bucketName string, goLiveTime time.Time, previewKey string) H {
-	return func(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
-		res, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
-			Bucket: aws.String(bucketName),
-			Key:    new(getKey(ctx, goLiveTime, event.QueryStringParameters, previewKey)),
-		})
-
-		if err != nil {
-			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
-		}
-
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
-		}
-
-		return events.APIGatewayProxyResponse{StatusCode: http.StatusOK, Body: string(b), Headers: map[string]string{"Content-Type": "application/json"}}, nil
-	}
+	return h.demoKey
 }

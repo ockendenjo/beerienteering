@@ -13,3 +13,13 @@ variable "env" {
 variable "preview_key" {
   type = string
 }
+
+variable "live_object_key" {
+  type    = string
+  default = ""
+}
+
+variable "demo_object_key" {
+  type    = string
+  default = ""
+}

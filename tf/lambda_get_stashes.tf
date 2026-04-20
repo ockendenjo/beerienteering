@@ -8,9 +8,11 @@ module "lambda_get_stashes" {
   project_name             = "beerienteering"
 
   environment = {
-    GO_LIVE_TIME = "2025-07-17T18:58:00+01:00"
-    BUCKET_NAME  = aws_s3_bucket.backend.id
-    PREVIEW_KEY  = var.preview_key
+    GO_LIVE_TIME    = "2025-07-17T18:58:00+01:00"
+    BUCKET_NAME     = aws_s3_bucket.backend.id
+    PREVIEW_KEY     = var.preview_key
+    LIVE_OBJECT_KEY = var.live_object_key
+    DEMO_OBJECT_KEY = var.demo_object_key
   }
 }
 

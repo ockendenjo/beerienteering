@@ -25,5 +25,6 @@ jobs:
       id-token: write
       contents: read
     uses: ./.github/workflows/deploy.yaml
+    secrets: inherit
     with:
       env: pro

@@ -40,6 +40,11 @@ func (h *lambdaHandler) handle(ctx *handler.Context, request events.APIGatewayPr
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
 	}
 
+	err = sf.Validate()
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest, Body: err.Error()}, nil
+	}
+
 	b, err := json.Marshal(sf)
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil

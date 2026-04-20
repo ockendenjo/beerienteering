@@ -94,8 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
           html += `</ul></div>`;
         }
       }
-      html += `<div class="w3w"><img src="imgs/w3w.png" height="32" width="32" alt="w3w"><a href="w3w://show?threewords=${stash.w3w}" target="_blank">${stash.w3w} (app)</a></div>`;
-      html += `<div class="w3w"><img src="imgs/w3w.png" height="32" width="32" alt="w3w"><a href="https://w3w.co/${stash.w3w}" target="_blank">${stash.w3w} (web)</a></div>`;
+
+      if (stash.w3w != "") {
+        html += `<div class="w3w"><img src="imgs/w3w.png" height="32" width="32" alt="w3w"><a href="w3w://show?threewords=${stash.w3w}" target="_blank">${stash.w3w} (app)</a></div>`;
+        html += `<div class="w3w"><img src="imgs/w3w.png" height="32" width="32" alt="w3w"><a href="https://w3w.co/${stash.w3w}" target="_blank">${stash.w3w} (web)</a></div>`;
+      }
 
       if (stash.type !== "INFO" && !isDemo) {
         html += `<div>`;

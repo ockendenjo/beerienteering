@@ -89,10 +89,11 @@ BINARY_BUCKET=$BINARY_BUCKET go run ./scripts/upload-binaries
 
 requires: build-ui
 environment: AWS_PROFILE=beerienteering
-directory: ui
 
 ```shell
 #!/bin/bash
-source ../tf/tfvars/.env
-aws s3 sync dist/ s3://${WEB_BUCKET}
+source tf/tfvars/.env
+mkdir -p ui/dist/admin
+cp admin/index* ui/dist/admin/
+aws s3 sync ui/dist/ s3://${WEB_BUCKET}
 ```

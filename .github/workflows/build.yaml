@@ -29,6 +29,11 @@ jobs:
           cp /tmp/2025.json ui/dist
           cp -r ui/imgs ui/dist/imgs
 
+      - name: Copy admin UI
+        run: |
+          mkdir -p ui/dist/admin
+          cp admin/index* ui/dist/admin/
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:

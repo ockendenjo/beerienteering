@@ -25,3 +25,5 @@ jobs:
       id-token: write
       contents: read
     uses: ./.github/workflows/deploy.yaml
+    with:
+      env: pro

@@ -5,7 +5,7 @@
 
 ## Functionality
 
-* The page should load JSON from `${window.location.host}/stag.json` using a fetch request
+* The page should load JSON from GET `${window.location.host}/stashes` using a fetch request
   * If an error is returned, use an empty StashFile object instead
 * The page should save JSON using a PUT request to `${window.location.host}/stashes`
 * The page should allow a stash to be added, edited or deleted

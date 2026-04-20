@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ockendenjo/handler"
 )
 
@@ -22,21 +24,15 @@ func main() {
 			panic(err)
 		}
 
-		s3Client := s3.NewFromConfig(awsConfig)
-		bucketName := handler.MustGetEnv("BUCKET_NAME")
-		previewKey := handler.MustGetEnv("PREVIEW_KEY")
-
-		liveKey := optEnv("LIVE_OBJECT_KEY", "2025.json")
-		demoKey := optEnv("DEMO_OBJECT_KEY", "demo.json")
-
 		h := &lambdaHandler{
-			s3Client:   s3Client,
-			bucketName: bucketName,
-			previewKey: previewKey,
-			liveKey:    liveKey,
-			demoKey:    demoKey,
+			s3Client:   s3.NewFromConfig(awsConfig),
+			bucketName: handler.MustGetEnv("BUCKET_NAME"),
+			previewKey: handler.MustGetEnv("PREVIEW_KEY"),
+			liveKey:    optEnv("LIVE_OBJECT_KEY", "2025.json"),
+			demoKey:    optEnv("DEMO_OBJECT_KEY", "demo.json"),
 			goLiveTime: goLiveTime,
 		}
+
 		return h.handle
 	})
 }
@@ -58,6 +54,16 @@ type lambdaHandler struct {
 	goLiveTime time.Time
 }
 
+func getBody(res *s3.GetObjectOutput, err error) ([]byte, error) {
+	if err == nil {
+		return io.ReadAll(res.Body)
+	}
+	if _, ok := errors.AsType[*types.NoSuchKey](err); ok {
+		return []byte(`{"demo":false,"stashes":[]}`), nil
+	}
+	return nil, err
+}
+
 func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	res, err := h.s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -65,17 +71,12 @@ func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProx
 		Key:    new(h.getKey(ctx, event.QueryStringParameters)),
 	})
 
-	if err != nil {
-		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
-	}
-
-	b, err := io.ReadAll(res.Body)
+	b, err := getBody(res, err)
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: http.StatusOK, Body: string(b), Headers: map[string]string{"Content-Type": "application/json"}}, nil
-
 }
 
 func (h *lambdaHandler) getKey(ctx *handler.Context, parameters map[string]string) string {

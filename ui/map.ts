@@ -159,6 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!j.demo) {
           document.getElementById("demo").style.display = "none";
         }
+        if (j.showInstructions) {
+          document.getElementById("select-info").style.display = "";
+        }
         return j.stashes;
       })
       .then((s) => {
@@ -185,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupTabs();
+  document.getElementById("select-info").style.display = "none";
   loadData();
 });
 

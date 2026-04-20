@@ -13,6 +13,12 @@ async function init() {
   }
   render();
 
+  const toggle = document.getElementById('show-instructions-toggle');
+  toggle.checked = !!stashFile.showInstructions;
+  toggle.addEventListener('change', () => {
+    stashFile.showInstructions = toggle.checked;
+  });
+
   document.getElementById('save-btn').addEventListener('click', saveStashes);
   document.getElementById('add-btn').addEventListener('click', openAdd);
   document.getElementById('cancel-btn').addEventListener('click', closeModal);

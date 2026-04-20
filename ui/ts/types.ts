@@ -1,6 +1,7 @@
 export type StashesFile = {
   demo: boolean;
   stashes: Stash[];
+  showInstructions?: boolean;
 };
 
 export type Stash = {

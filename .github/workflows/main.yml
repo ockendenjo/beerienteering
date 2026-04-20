@@ -11,19 +11,15 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate
     uses: ./.github/workflows/validate.yaml
 
   test:
-    name: Test
     uses: ./.github/workflows/test.yaml
 
   build:
-    name: Build
     uses: ./.github/workflows/build.yaml
 
   deploy:
-    name: Deploy
     needs: [validate, test, build]
     permissions:
       id-token: write

@@ -1,4 +1,4 @@
-name: PR checks
+name: PR
 
 on:
   pull_request:
@@ -11,13 +11,10 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate
     uses: ./.github/workflows/validate.yaml
 
   test:
-    name: Test
     uses: ./.github/workflows/test.yaml
 
   build:
-    name: Build
     uses: ./.github/workflows/build.yaml

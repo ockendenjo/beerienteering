@@ -1,0 +1,20 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Node modules
+        working-directory: ui
+        run: npm install
+
+      - name: Check formatting
+        working-directory: ui
+        run: npx prettier --check .

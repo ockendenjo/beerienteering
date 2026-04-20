@@ -1,13 +1,13 @@
-name: Deploy main branch
+name: PR checks
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
 concurrency:
-  group: main
-  cancel-in-progress: false
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -21,11 +21,3 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/build.yaml
-
-  deploy:
-    name: Deploy
-    needs: [validate, test, build]
-    permissions:
-      id-token: write
-      contents: read
-    uses: ./.github/workflows/deploy.yaml

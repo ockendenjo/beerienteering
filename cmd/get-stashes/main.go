@@ -4,13 +4,13 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/ockendenjo/beerienteering/pkg/env"
 	"github.com/ockendenjo/handler"
 )
 
@@ -28,21 +28,13 @@ func main() {
 			s3Client:   s3.NewFromConfig(awsConfig),
 			bucketName: handler.MustGetEnv("BUCKET_NAME"),
 			previewKey: handler.MustGetEnv("PREVIEW_KEY"),
-			liveKey:    optEnv("LIVE_OBJECT_KEY", "2025.json"),
-			demoKey:    optEnv("DEMO_OBJECT_KEY", "demo.json"),
+			liveKey:    env.OptStr("LIVE_OBJECT_KEY", "2025.json"),
+			demoKey:    env.OptStr("DEMO_OBJECT_KEY", "demo.json"),
 			goLiveTime: goLiveTime,
 		}
 
 		return h.handle
 	})
-}
-
-func optEnv(key, defaultValue string) string {
-	s := os.Getenv(key)
-	if s == "" {
-		return defaultValue
-	}
-	return s
 }
 
 type lambdaHandler struct {

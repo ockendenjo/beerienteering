@@ -32,7 +32,7 @@ jobs:
       - name: Copy admin UI
         run: |
           mkdir -p ui/dist/admin
-          cp admin/ ui/dist/admin/
+          cp admin/index* ui/dist/admin/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

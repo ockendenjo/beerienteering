@@ -9,14 +9,22 @@ concurrency:
   group: main
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   validate:
+    permissions:
+      contents: read
     uses: ./.github/workflows/validate.yaml
 
   test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/test.yaml
 
   build:
+    permissions:
+      contents: read
     uses: ./.github/workflows/build.yaml
 
   deploy:
@@ -25,6 +33,9 @@ jobs:
       id-token: write
       contents: read
     uses: ./.github/workflows/deploy.yaml
-    secrets: inherit
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
     with:
       env: pro

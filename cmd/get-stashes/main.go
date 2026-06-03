@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ockendenjo/beerienteering/pkg/env"
 	"github.com/ockendenjo/handler"
 )
@@ -50,7 +50,7 @@ func getBody(res *s3.GetObjectOutput, err error) ([]byte, error) {
 	if err == nil {
 		return io.ReadAll(res.Body)
 	}
-	if _, ok := errors.AsType[*types.NoSuchKey](err); ok {
+	if _, ok := errors.AsType[*s3Types.NoSuchKey](err); ok {
 		return []byte(`{"demo":false,"stashes":[]}`), nil
 	}
 	return nil, err

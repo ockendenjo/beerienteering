@@ -41,3 +41,4 @@ jobs:
         with:
           name: build
           path: ui/dist
+          retention-days: 1

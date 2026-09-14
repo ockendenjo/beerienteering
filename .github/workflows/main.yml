@@ -15,24 +15,24 @@ jobs:
   validate:
     permissions:
       contents: read
-    uses: ./.github/workflows/validate.yaml
+    uses: $/.github/workflows/validate.yaml
 
   test:
     permissions:
       contents: read
-    uses: ./.github/workflows/test.yaml
+    uses: $/.github/workflows/test.yaml
 
   build:
     permissions:
       contents: read
-    uses: ./.github/workflows/build.yaml
+    uses: $/.github/workflows/build.yaml
 
   deploy:
     needs: [validate, test, build]
     permissions:
       id-token: write
       contents: read
-    uses: ./.github/workflows/deploy.yaml
+    uses: $/.github/workflows/deploy.yaml
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}

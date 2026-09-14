@@ -30,7 +30,7 @@ jobs:
   deploy:
     needs: [validate, test, build]
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC
       contents: read
     uses: $/.github/workflows/deploy.yaml
     secrets:

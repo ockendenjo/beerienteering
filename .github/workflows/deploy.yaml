@@ -14,13 +14,15 @@ on:
       AWS_BUCKET_NAME:
         required: true
 
+permissions: {}
+
 jobs:
   deploy:
     name: deploy
     environment: ${{ inputs.env }}
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC
       contents: read
     steps:
       - name: Checkout source code
@@ -41,4 +43,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: S3 Sync
-        run: aws s3 sync ./ui/dist s3://${{ secrets.AWS_BUCKET_NAME }}
+        run: aws s3 sync ./ui/dist "s3://${AWS_BUCKET_NAME}"
+        env:
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}

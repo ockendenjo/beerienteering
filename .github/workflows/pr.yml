@@ -14,10 +14,10 @@ permissions:
 
 jobs:
   validate:
-    uses: ./.github/workflows/validate.yaml
+    uses: $/.github/workflows/validate.yaml
 
   test:
-    uses: ./.github/workflows/test.yaml
+    uses: $/.github/workflows/test.yaml
 
   build:
-    uses: ./.github/workflows/build.yaml
+    uses: $/.github/workflows/build.yaml

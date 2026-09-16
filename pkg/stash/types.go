@@ -3,8 +3,7 @@ package stash
 import (
 	"errors"
 	"fmt"
-
-	"github.com/google/uuid"
+	"uuid"
 )
 
 type StashFile struct {

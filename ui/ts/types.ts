@@ -18,7 +18,7 @@ export type Stash = {
   hide?: boolean;
 };
 
-export type StashType = "STASH" | "HOUSE" | "INFO";
+type StashType = "STASH" | "HOUSE" | "INFO";
 
 export type Tab = {
   tab: HTMLElement;

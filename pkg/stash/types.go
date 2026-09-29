@@ -42,6 +42,16 @@ func (s *Stash) Validate() error {
 	if s.Lon > 180 || s.Lon < -180 {
 		return errors.New("invalid stash longitude")
 	}
+	if err := s.validateFields(); err != nil {
+		return err
+	}
+	if s.Points < 0 {
+		return errors.New("stash points must be positive")
+	}
+	return nil
+}
+
+func (s *Stash) validateFields() error {
 	if len(s.Location) > 100 {
 		return errors.New("stash location too long")
 	}
@@ -58,9 +68,6 @@ func (s *Stash) Validate() error {
 	}
 	if len(s.W3W) > 100 {
 		return errors.New("stash w3w is too long")
-	}
-	if s.Points < 0 {
-		return errors.New("stash points must be positive")
 	}
 	return nil
 }

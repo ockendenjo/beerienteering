@@ -4,3 +4,5 @@
 ui/aggregate.json
 build/
 tfvars
+.golangci.json
+

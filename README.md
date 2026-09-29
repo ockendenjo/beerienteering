@@ -75,6 +75,14 @@ environment: AWS_PROFILE=beerienteering
 terraform plan -var-file=tfvars/pro.auto.tfvars -input=false
 ```
 
+### sast
+
+```shell
+wget -O .golangci.json https://raw.githubusercontent.com/ockendenjo/actions/refs/heads/main/.golangci.json
+golangci-lint run
+govulncheck ./...
+```
+
 ### upload-cmd
 
 environment: AWS_PROFILE=beerienteering
